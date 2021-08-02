@@ -73,6 +73,10 @@ module.exports = {
   // Mods can override this per room
   TTL: 48,
 
+  // Maximal file size in bytes.
+  // Set to 0 to disable.
+  maxFileSize: 10 * 1024 * 1024 * 1024,
+
   /*****************/
   /* Flood control */
   /*****************/
@@ -88,7 +92,7 @@ module.exports = {
   reportFloodDuration: 120000,
 
   // Number of uploads before considered flooding
-  uploadFloodTrigger: 25,
+  uploadFloodTrigger: 60,
   // Number of ms to block uploads from flooding user
   uploadFloodDuration: 60000,
 
