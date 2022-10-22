@@ -1,6 +1,8 @@
 account.js*
 client.js*
 register.js*
+login.js*
+already-login.js*
 sortable.js*
 xregexp.js*
 s~*

@@ -35,6 +35,7 @@ module.exports = {
     client: "./main.js",
     register: "./register.js",
     login: "./login.js",
+    "already-login": "./already-login.js",
     account: "./account.js",
     sortable: "./sortable.js",
     style: "./css/style.css",
