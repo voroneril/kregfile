@@ -1,0 +1,20 @@
+<!doctype html>
+<%- include("head"); %>
+<body id="page">
+  <nav>
+    <h1 id="name">Login</h1>
+  </nav>
+  <article>
+    <ul id="errors"></ul>
+    <form id="register" autocomplete="off" method="post" action="javascript:">
+      <input type="hidden" name="token" value="<%= token %>">
+      <label for="u">User Name:</label>
+      <input id="username" name="u" type="text" autocomplete="username">
+      <label for="pass">Password:</label>
+      <input id="pass" name="p" type="password" autocomplete="password">
+      <input id="submit" type="submit" value="Login">
+    </form>
+  </article>
+  <%- include("footer"); %>
+  <script src="/login.js?v=<%=v%>" async></script>
+</body>
