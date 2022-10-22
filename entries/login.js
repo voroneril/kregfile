@@ -88,8 +88,10 @@ form.addEventListener("submit", async e => {
         console.error("Failed to save cred", ex);
       }
     }
-    
-    document.location = "/r/" + findGetParameter('roomid');
+    if(findGetParameter('roomid'))
+        document.location = "/r/" + findGetParameter('roomid');
+    else
+        document.location = "/";
   }
   catch (ex) {
     ul.appendChild(dom("li", {text: ex.message || ex}));

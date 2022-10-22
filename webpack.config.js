@@ -34,6 +34,7 @@ module.exports = {
   entry: {
     client: "./main.js",
     register: "./register.js",
+    login: "./login.js",
     account: "./account.js",
     sortable: "./sortable.js",
     style: "./css/style.css",
