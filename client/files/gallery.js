@@ -99,11 +99,16 @@ export default class Gallery {
   }
 
   close() {
+    // Unhook navigation (see .open for counterpart)
     document.body.removeEventListener("keydown", this.onpress, true);
     document.body.removeEventListener("wheel", this.onpress, true);
+
+    // Turn off gallery mode and garbage collect
     this.el.parentElement.classList.remove("gallery");
     this.imgEl.src = "";
     this.file = null;
+
+    // Drop history back to base room link
     if (document.location.hash) {
       const u = new URL(document.location);
       u.hash = "";
@@ -112,9 +117,11 @@ export default class Gallery {
   }
 
   maybeClose(file) {
+    // Only close when the current file is actually the active only
     if (this.file !== file) {
       return;
     }
+
     this.close();
   }
 
@@ -166,22 +173,62 @@ export default class Gallery {
     if (!info) {
       return false;
     }
+
     this.file = file;
-    this.imgEl.src = "/loader.png";
-    const img = this.imgEl.cloneNode();
-    img.onload = () => {
-      if (this.file !== file) {
-        return;
+
+    // Set up placeholder loader image
+    const to = setTimeout(() => {
+      const loader = new Image();
+      loader.src = "/loader.png";
+      loader.id = this.imgEl.id;
+      this.imgEl.parentElement.replaceChild(loader, this.imgEl);
+      this.imgEl = loader;
+    }, 60);
+
+    if (info.img) {
+    // Set up new image (and swap on load)
+      const img = new Image();
+      img.id = this.imgEl.id;
+      img.onload = () => {
+        if (this.file !== file) {
+          return;
+        }
+        clearTimeout(to);
+        this.imgEl.parentElement.replaceChild(img, this.imgEl);
+        this.imgEl = img;
+        this.imgEl.addEventListener("click", this.onimgclick);
+      };
+      if (info.srcset && info.sizes) {
+        img.setAttribute("srcset", info.srcset);
+        img.setAttribute("sizes", info.sizes);
       }
-      this.imgEl.parentElement.replaceChild(img, this.imgEl);
-      this.imgEl = img;
-      this.imgEl.addEventListener("click", this.onimgclick);
-    };
-    img.setAttribute("srcset", info.srcset);
-    img.src = info.img;
+      img.src = info.img;
+    }
+    else if (info.video) {
+      const video = document.createElement("video");
+      video.id = this.imgEl.id;
+      video.src = info.video;
+      video.setAttribute("controls", "controls");
+      video.setAttribute("loop", "loop");
+      video.oncanplay = () => {
+        if (this.file !== file) {
+          return;
+        }
+        clearTimeout(to);
+        this.imgEl.parentElement.replaceChild(video, this.imgEl);
+        this.imgEl = video;
+        this.imgEl.addEventListener("click", this.onimgclick);
+        video.play();
+      };
+    }
+
+    // Set up additional info elements straight away
     this.titleEl.classList.add("visible");
     this.infoEl.textContent = info.infos.join(" — ");
     this.showAux();
+
+
+    // Push gallery link (hash) into history
     const u = new URL(document.location);
     u.hash = `#${file.key}`;
     if (document.location.hash) {
@@ -190,11 +237,15 @@ export default class Gallery {
     else {
       history.pushState(null, "", u.href);
     }
+
+    // Activate on next anim frame
     APOOL.schedule(null, () => {
       this.el.parentElement.classList.add("gallery");
       this.titleEl.textContent = file.name;
       this.startHideAux();
     });
+
+    // Hook up gallery navigation (see counterpart in .close)
     document.body.addEventListener("keydown", this.onpress, true);
     document.body.addEventListener("wheel", this.onwheel, true);
     return true;

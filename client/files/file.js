@@ -51,9 +51,12 @@ export default class File extends BaseFile {
           },
           classes: ["i-file-download"],
         });
-
+        
         this.el.appendChild(this.downloadEl2);
     }
+    
+
+    
     this.nameEl = dom("a", {
       attrs: {
         target: "_blank",
@@ -123,7 +126,6 @@ export default class File extends BaseFile {
 
     this.sizeEl = dom("span", {
       classes: ["size"],
-      attrs: { "title" : file.size }, /* Added line to tooltip the actual size */
       text: toPrettySize(file.size)
     });
     this.detailEl.appendChild(this.sizeEl);
@@ -278,9 +280,54 @@ export default class File extends BaseFile {
     if (this.type === "audio" || !this.assets.size) {
       return null;
     }
+
+    const infos = [
+      toPrettySize(this.size),
+      this.tags.user || this.tags.usernick
+    ];
+    const {resolution, duration} = this;
+    if (duration) {
+      infos.unshift(duration);
+    }
+    if (resolution) {
+      infos.unshift(resolution);
+    }
+
+    // Just display GIF files inline, to allow animated ones
+    if (this.meta.type === "GIF") {
+      return {
+        img: this.url,
+        infos
+      };
+    }
+
+    if (this.type === "video") {
+      if (this.meta.type === "WEBM") {
+        // Play webms inline
+        return {
+          video: this.url,
+          infos
+        };
+      }
+      if (this.meta.type === "MP4" && this.meta.codec === "avc1") {
+        // Play mp4+h264 inline
+        return {
+          video: this.url,
+          infos
+        };
+      }
+    }
+
+    // Prepare assets
     const {innerWidth, innerHeight} = window;
     const assets = Array.from(this.assets.values()).
       filter(e => e.type === "image");
+    if (!assets.length) {
+      return null;
+    }
+    sort(assets, e => e.width * e.height);
+
+    // Pick the best asset according to current display size
     const bestAssets = assets.filter(e => {
       if (e.width > innerWidth * 1.4) {
         return false;
@@ -290,9 +337,6 @@ export default class File extends BaseFile {
       }
       return true;
     });
-    if (!assets.length) {
-      return null;
-    }
     const sorter = e => {
       return [
         !(Math.abs(e.width - innerWidth) < 100 &&
@@ -301,19 +345,16 @@ export default class File extends BaseFile {
       ];
     };
     sort(bestAssets, sorter);
+
+    // Bring it all together
     const img = this.href + bestAssets.pop().ext;
-    const infos = [toPrettySize(this.size), this.tags.user];
-    const {resolution, duration} = this;
-    if (duration) {
-      infos.unshift(duration);
-    }
-    if (resolution) {
-      infos.unshift(resolution);
-    }
     const srcset = assets.map(e => `${this.href}${e.ext} ${e.width}w`).join(", ");
+    const largest = assets.pop();
+    const sizes = `${assets.map(e => `(max-width: ${e.width}px) ${e.width}px`).join(", ")}, ${largest.width}px`;
     return {
       img,
       srcset,
+      sizes,
       infos
     };
   }

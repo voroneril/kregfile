@@ -1,0 +1,3 @@
+git pull
+yarn run webpack --mode=production
+forever restart 0
