@@ -169,12 +169,11 @@ footer > * > a {
 }
 
 .blink {
-  animation: opulse 5s infinite ease-in;
+  animation: opulse 5s infinite ease-in alternate;
 }
 
 .layer {
   backface-visibility: hidden;
-  transform: translateZ(0);
 }
 
 .scroller {

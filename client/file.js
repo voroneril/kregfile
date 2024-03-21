@@ -67,12 +67,15 @@ class FileTooltip extends Tooltip {
     case "video": {
       const video = dom("video", {
         attrs: {
-          autoplay: "true",
           loop: "true",
-          preload: "auto",
         },
         classes: ["tooltip-preview"],
       });
+      const playVideo = () => {
+        video.removeEventListener("canplay", playVideo);
+        video.play().catch(console.error);
+      };
+      video.addEventListener("canplay", playVideo);
       video.appendChild(dom("source", {
         attrs: {
           type: preview.mime,
@@ -80,6 +83,7 @@ class FileTooltip extends Tooltip {
         }
       }));
       this.el.appendChild(video);
+      this.video = video;
       return;
     }
 
@@ -100,6 +104,7 @@ class FileTooltip extends Tooltip {
       };
       loaded.src = url;
       this.el.appendChild(img);
+      this.img = img;
       return;
     }
 
@@ -152,8 +157,22 @@ class FileTooltip extends Tooltip {
   show() {
     this.el.classList.add("visible");
   }
-}
 
+  destroy() {
+    if (this.video) {
+      this.video.removeAttribute("loop");
+      this.video.pause();
+      this.video.textContent = "";
+      this.video.parentElement.removeChild(this.video);
+      this.video = null;
+    }
+    if (this.img) {
+      this.img.src = "";
+      this.img.srcset = "";
+      this.img.parentElement.removeChild(this.img);
+    }
+  }
+}
 
 export default class File extends Removable {
   constructor(file) {
